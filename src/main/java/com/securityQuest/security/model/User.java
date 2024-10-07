@@ -1,13 +1,18 @@
 package com.securityQuest.security.model;
 
 import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -66,9 +71,6 @@ public class User {
         this.last_name = last_name;
     }
 
-    public String getUsername() {
-        return username;
-    }
 
     public void setUsername(String username) {
         this.username = username;
@@ -112,5 +114,44 @@ public class User {
 
     public void setRoles(Set<String> roles) {
         this.roles = roles;
+    }
+
+    /*Ajout de La méthode getAuthorities() qui retourne une collection de GrantedAuthority, qui représente les rôles de l'utilisateur.
+     Elle transforme chaque rôle en une SimpleGrantedAuthority, un objet que Spring Security utilise pour vérifier les autorisations.*/
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toSet());
+    }
+
+    /*getUsername() retourne l'email de l'utilisateur. Dans ce contexte, l'email est utilisé comme nom d'utilisateur (username).
+
+    isAccountNonExpired(), isAccountNonLocked(), isCredentialsNonExpired(), isEnabled() :
+     Ces méthodes permettent de contrôler l'état du compte utilisateur.
+     Dans cet exemple, elles retournent toutes true, ce qui signifie que le compte est valide, non expiré, non verrouillé et activé.*/
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 }
